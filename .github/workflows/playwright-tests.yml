@@ -1,0 +1,50 @@
+name: Playwright Tests
+#set the trigger
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+    types: [closed]
+  schedule:
+    # GitHub Actions schedules use UTC; 17:00 UTC is 12:00 PM EST.
+    - cron: '0 17 * * *'
+  workflow_dispatch:
+
+jobs:
+  playwright:
+    if: github.event_name != 'pull_request' || github.event.pull_request.merged == true
+    runs-on: ubuntu-latest  #virtual machine(ubuntu-latest for linux, windows-latest for windows, macos-latest for mac)
+    timeout-minutes: 30  #max time for the job to run
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci #npm install command to install dependencies from package-lock.json
+
+      - name: Install Playwright browser
+        run: npx playwright install --with-deps chromium
+
+      - name: Run Playwright tests
+        run: npm run tests:headless
+        env: # mapping the secrets to environment variables that can be used in the test
+          PRACTICE_USERNAME: ${{ secrets.PRACTICE_USERNAME }}
+          PRACTICE_PASSWORD: ${{ secrets.PRACTICE_PASSWORD }}
+
+      - name: Upload Playwright report and test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-results
+          path: |
+            playwright-report/
+            test-results/
+          if-no-files-found: warn
+          retention-days: 14
