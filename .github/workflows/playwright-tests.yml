@@ -14,7 +14,7 @@ on:
 jobs:
   playwright:
     if: github.event_name != 'pull_request' || github.event.pull_request.merged == true
-    runs-on: ubuntu-latest  #virtual machine(ubuntu-latest for linux, windows-latest for windows, macos-latest for mac)
+    runs-on: ubuntu-24.04  #virtual machine(ubuntu-latest for linux, windows-latest for windows, macos-latest for mac)
     timeout-minutes: 30  #max time for the job to run
     steps:
       - name: Check out repository
